@@ -1,0 +1,66 @@
+image: tiangolo/docker-with-compose
+
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASS $CI_REGISTRY
+
+stages:
+  - buildStage
+  - deployStage
+  - buildProd
+  - deployProd
+#  - debug
+
+
+build-stag:
+  stage: buildStage
+  script:
+    - mv staticfiles/staging.robots.txt staticfiles/robots.txt
+    - docker build . -t reg.didepardaz.ir/didepardaz_task:staging
+    - docker push reg.didepardaz.ir/didepardaz_task:staging
+
+  only:
+    - staging
+
+
+deploy-stag:
+  stage: deployStage
+  script:
+    - apk update --no-cache ; apk add jq
+    - curl -s --header "$GITLAB_TOKEN" "${MY_GITLAB}/projects/${CI_PROJECT_ID}/members/all" | jq '.[]|.id'>.members 
+    - curl -s --header "$GITLAB_TOKEN" "${MY_GITLAB}/projects/224/members/all" | jq '.[]|.id' >.exceptions  
+    - for i in $(cat .members|grep -vwf .exceptions); do curl -s --header "$GITLAB_TOKEN" "${MY_GITLAB}/users/$i"|jq .email;done > .list 
+    - export CCREMAILS=$( cat .list | tr -d \" | tr '\n' ',' )
+    - echo $CCREMAILS
+    - docker stack deploy -c docker-compose.staging.yml --with-registry-auth didepardaz_task
+  only:
+    - staging
+
+
+build-prod-stag:
+  stage: buildProd
+  script:
+    - mv staticfiles/prod.robots.txt staticfiles/robots.txt
+    - docker build . -t reg.didepardaz.ir/didepardaz_task
+    - docker push reg.didepardaz.ir/didepardaz_task
+
+  only:
+    - main
+
+
+deploy-prod-stag:
+  stage: deployProd
+  script:
+    - apk update --no-cache ; apk add jq
+    - curl -s --header "$GITLAB_TOKEN" "${MY_GITLAB}/projects/${CI_PROJECT_ID}/members/all" | jq '.[]|.id'>.members 
+    - curl -s --header "$GITLAB_TOKEN" "${MY_GITLAB}/projects/224/members/all" | jq '.[]|.id' >.exceptions  
+    - for i in $(cat .members|grep -vwf .exceptions); do curl -s --header "$GITLAB_TOKEN" "${MY_GITLAB}/users/$i"|jq .email;done > .list 
+    - docker stack deploy -c docker-compose.yml --with-registry-auth didepardaz_task
+
+  only:
+    - main
+
+#print-all-env-vars-job:
+#  stage: debug
+#  script:
+#    - echo "GitLab CI/CD | Print all environment variables"
+#    - env

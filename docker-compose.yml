@@ -1,0 +1,73 @@
+version: "3.7"
+
+networks:
+  didepardaz_task:
+  traefik-public:
+    external: true
+
+volumes:
+  didepardaz_task-media.vol:
+  didepardaz_task-static.vol:
+  didepardaz_task-db-data.vol:
+
+
+services:
+  didepardaz_task-db:
+    image: postgres:15.0
+    container_name: didepardaz_task-db
+    restart: always
+    tty: true
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - didepardaz_task-db-data.vol:/var/lib/postgresql/data
+    networks:
+      - didepardaz_task
+
+  didepardaz_task-redis:
+    image: redis
+    networks:
+      - didepardaz_task
+
+
+  didepardaz_task:
+    image: reg.didepardaz.ir/didepardaz_task:latest
+    sysctls:
+      net.core.somaxconn: 1024
+    volumes:
+      - didepardaz_task-media.vol:/app/media
+      - didepardaz_task-static.vol:/app/static
+    networks:
+      - didepardaz_task
+      - traefik-public
+    environment:
+      - DEBUG=on
+      - SERVE_STRATEGY=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DATABASE_URL=psql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@didepardaz_task-db:5432/${POSTGRES_DB}
+      - CACHE_URL=rediscache://redis:6379/1?client_class=django_redis.client.DefaultClient
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - EMAIL_USE_TLS=${EMAIL_USE_TLS}
+      - REDIS_HOST=didepardaz_task-redis
+      - ADMINS_MOBILE_NUMBER=${STG_ADMIN_MOBILE_NUMBER}
+    depends_on:
+      - didepardaz_task-db
+    deploy:
+      endpoint_mode: dnsrr
+      update_config:
+        order: start-first
+        monitor: "5m"
+      rollback_config:
+        order: start-first
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.didepardaz_task.rule=Host(`didepardaz_task.didepardaz.ir`)"
+        - "traefik.http.routers.didepardaz_task.entrypoints=websecure"
+        - "traefik.http.routers.didepardaz_task.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.didepardaz_task.loadbalancer.server.port=8000"
+  
