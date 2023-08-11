@@ -1,0 +1,39 @@
+{% extends 'base.html' %}  <!-- Extend your base template if you have one -->
+
+{% block content %}
+  <h2>List of Mobiles</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Brand</th>
+        <th>Brand Nationality</th>
+        <th>Model</th>
+        <th>Price</th>
+        <th>Color</th>
+        <th>Size</th>
+        <th>Availability</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for mobile in mobiles %}
+        <tr>
+          <td>{{ mobile.brand }}</td>
+          <td>{{ mobile.brand.nationality }}</td>
+          <td>{{ mobile.model }}</td>
+          <td>{{ mobile.price }}</td>
+          <td>{{ mobile.color_name }}</td>
+          <td>{{ mobile.size }}</td>
+          <td class="checkmark">{% if mobile.is_available %}
+          <span class="custom-checkbox" >&#10004;</span>
+              {% else %}
+              <span class="custom-checkbox">&#10006;</span>
+              {% endif %}
+          </td>
+              <td><a href="{% url 'edit_mobile' mobile.id %}" class="btn btn-secondary">Edit</a></td>
+
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a href="{% url 'add_mobile' %}" class="btn btn-primary">Add New Mobile</a> <!-- New line -->
+{% endblock %}

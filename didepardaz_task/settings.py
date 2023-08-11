@@ -35,10 +35,6 @@ ALLOWED_HOSTS = ["*"]
 ADMINS_MOBILE_NUMBER = env("ADMINS_MOBILE_NUMBER", default="").split(",")
 # Application definition
 
-APP_MODULES = [
-    "apps.account",
-    "apps.inventory",
-]
 DJANGO_APP = [
     "jazzmin",
     "django.contrib.admin",
@@ -50,8 +46,7 @@ DJANGO_APP = [
     "django.contrib.sitemaps",
     "django.contrib.gis.geoip2",
 ]
-LIB_MODULES = [
-]
+LIB_MODULES = []
 
 
 MIDDLEWARE = [
@@ -71,9 +66,7 @@ PYPI_MODULES = [
     "rest_framework.authtoken",
     "django_filters",
     "corsheaders",
-    "compressor",
     "drf_yasg",
-    "simple_history",
     "django_extensions",
 ]
 
@@ -81,11 +74,12 @@ INSTALLED_APPS = [
     *LIB_MODULES,
     *DJANGO_APP,
     *PYPI_MODULES,
-    *APP_MODULES,
+    "apps.account",
+    "apps.inventory",
+    "apps.location",
 ]
 
-CELERY_BEAT_SCHEDULE = {
-}
+CELERY_BEAT_SCHEDULE = {}
 
 
 CORS_ORIGIN_ALLOW_ALL = True
@@ -112,8 +106,8 @@ LOGGING = {
         },
         "django.request": {
             "handlers": ["console"],
-            "level": "ERROR",
-            "propagate": False,
+            "level": "INFO",
+            "propagate": True,
         },
     },
 }
@@ -250,8 +244,6 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    # other finders..
-    "compressor.finders.CompressorFinder",
 )
 
 
@@ -271,7 +263,6 @@ if SERVE_STRATEGY == "local":
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 elif SERVE_STRATEGY == "production":
-    
     INSTALLED_APPS.append("elasticapm.contrib.django")
     ELASTIC_APM = {
         "SERVICE_NAME": "didepardaz_task-django",
@@ -294,7 +285,7 @@ elif SERVE_STRATEGY == "production":
         "propagate": False,
     }
     MIDDLEWARE.append("elasticapm.contrib.django.middleware.TracingMiddleware")
-    
+
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
     LOGGING["disable_existing_loggers"] = True
@@ -312,12 +303,12 @@ else:  # test
             "NAME": "db.sqlite3",
         }
     }
-    
+
     ELASTIC_APM_DISABLE_SEND = True
     CELERY_BROKER_BACKEND = "memory"
     CELERY_TASK_ALWAYS_EAGER = True
     CELERY_TASK_EAGER_PROPAGATES = True
-    
+
     PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
     CACHES = {
         "default": {
@@ -346,7 +337,9 @@ JAZZMIN_SETTINGS = {
     "navigation_expanded": True,
     "hide_apps": ["auth"],
     "hide_models": [],
-    "order_with_respect_to": ["account", ],
+    "order_with_respect_to": [
+        "account",
+    ],
     "icons": {
         "account": "fas fa-users-cog",
         "account.user": "fas fa-user",

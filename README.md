@@ -18,24 +18,29 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4- spin off docker compose
-```
-docker-compose -f docker-compose.dev.yml up -d
-```
-
-5- create your env
+4- create your env
 ```
 cp .env.example .env
 ```
-
-6- Create tables
+5.1- Create database
+```sql
+create database didepardaz_task;
+```
+5.2- Create tables
 ```
 python manage.py migrate
 ```
 
-7- run the project
+6- run the project
 ```
 python manage.py runserver
 ```
-
+7- load data
+```
+python manage.py loaddata ./**/fixtures/*
+```
+!note for use admin-panel create superuser
+```
+python manage.py createsuperuser
+```
 

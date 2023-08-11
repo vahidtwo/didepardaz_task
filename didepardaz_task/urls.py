@@ -27,6 +27,7 @@ urlpatterns = [
     path("swagger/", schema_view.with_ui("swagger", cache_timeout=0)),
     path("api/v1/", include("apps.urls.api")),
     path("i18n/", include("django.conf.urls.i18n")),
+    path("", include("apps.urls.web")),
 ]
 
 if settings.DEBUG:
