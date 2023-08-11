@@ -44,3 +44,10 @@ python manage.py loaddata ./**/fixtures/*
 python manage.py createsuperuser
 ```
 
+### endpoints :
+- templates:
+    - /mobile/
+    - /mobile/add/
+    - /mobile/edit/\<int:id>/
+- rest apis
+  - /swagger/
