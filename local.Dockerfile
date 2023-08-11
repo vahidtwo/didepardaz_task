@@ -13,9 +13,9 @@ COPY custom-nginx.conf /etc/nginx/conf.d/custom.conf
 WORKDIR /app
 
 
-COPY requirements.txt /app/
+COPY requirements_dev.txt /app/
 COPY requirements /app/requirements
-RUN pip install -r requirements.txt
+RUN pip install -r requirements_dev.txt
 
 COPY prestart.sh /app/prestart.sh
 COPY uwsgi.ini /app/uwsgi.ini

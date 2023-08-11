@@ -36,37 +36,6 @@ services:
       - redis
     restart: on-failure
 
-    ELASTIC_APM_DISABLE_SEND = True
-  celery:
-    build:
-      context: .
-      dockerfile: local.Dockerfile
-    command: celery -A config.celery worker -l info --without-gossip --without-mingle --without-heartbeat
-    environment:
-      - DATABASE_URL=psql://postgres:postgres@db:5432/didepardaz_task
-      - CELERY_BROKER_URL=redis://localhost:6379/2
-    volumes:
-      - .:/app
-    depends_on:
-      - db
-      - redis
-    restart: on-failure
-
-  beats:
-    build:
-      context: .
-      dockerfile: local.Dockerfile
-    command: celery -A config.celery beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
-    environment:
-      - DATABASE_URL=psql://postgres:postgres@db:5432/didepardaz_task
-      - CELERY_BROKER_URL=redis://localhost:6379/2
-    volumes:
-      - .:/app
-    depends_on:
-      - db
-      - redis
-    restart: on-failure
-
 
 
 volumes:
